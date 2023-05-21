@@ -28,14 +28,14 @@ func gptComplete(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error marshaling JSON:", err)
 		return
 	}
-
+	s := fmt.Sprintf("Bearer %s", gptkey)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		fmt.Println("Error creating HTTP request:", err)
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer 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")
+	req.Header.Set("Authorization", s)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
