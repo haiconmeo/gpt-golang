@@ -14,31 +14,44 @@ import (
 
 var gptkey string
 
+type Request struct {
+	Prompt string `json:"prompt"`
+}
+
 func gptComplete(w http.ResponseWriter, r *http.Request) {
+	var req Request
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Error parsing request body: %v", err)
+		return
+	}
+
+	prompt := req.Prompt
 	url := "https://api.openai.com/v1/completions"
 
 	data := map[string]interface{}{
 		"model":       "text-davinci-003",
-		"prompt":      "Say this is a test",
-		"max_tokens":  7,
+		"prompt":      prompt,
+		"max_tokens":  1000,
 		"temperature": 0,
 	}
-	payload, err := json.Marshal(data)
-	if err != nil {
+	payload, error := json.Marshal(data)
+	if error != nil {
 		fmt.Println("Error marshaling JSON:", err)
 		return
 	}
 	s := fmt.Sprintf("Bearer %s", gptkey)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	reqGpt, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		fmt.Println("Error creating HTTP request:", err)
 		return
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", s)
+	reqGpt.Header.Set("Content-Type", "application/json")
+	reqGpt.Header.Set("Authorization", s)
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := client.Do(reqGpt)
 	if err != nil {
 		fmt.Println("Error sending HTTP request:", err)
 		return
