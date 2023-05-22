@@ -1,13 +1,13 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -29,20 +29,18 @@ func gptComplete(w http.ResponseWriter, r *http.Request) {
 
 	prompt := req.Prompt
 	url := "https://api.openai.com/v1/completions"
+	payload := strings.NewReader(`{
+		"model": "text-davinci-003",
+		"prompt": ` + "\"" + prompt + "\"" + `,
+		"temperature": 1,
+		"max_tokens": 256,
+		"top_p": 1,
+		"frequency_penalty": 0,
+		"presence_penalty": 0
+	  }`)
 
-	data := map[string]interface{}{
-		"model":       "text-davinci-003",
-		"prompt":      prompt,
-		"max_tokens":  1000,
-		"temperature": 0,
-	}
-	payload, error := json.Marshal(data)
-	if error != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return
-	}
 	s := fmt.Sprintf("Bearer %s", gptkey)
-	reqGpt, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	reqGpt, err := http.NewRequest("POST", url, payload)
 	if err != nil {
 		fmt.Println("Error creating HTTP request:", err)
 		return
@@ -73,7 +71,7 @@ func main() {
 	gptkey = os.Getenv("GPT_KEY")
 	server := http.NewServeMux()
 	server.HandleFunc("/gpt", gptComplete)
-	err = http.ListenAndServe(":80", server)
+	err = http.ListenAndServe(":8080", server)
 	if err != nil {
 		log.Fatalf("Some error occured. Err: %s", err)
 	}
