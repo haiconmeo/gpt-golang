@@ -71,7 +71,7 @@ func main() {
 	gptkey = os.Getenv("GPT_KEY")
 	server := http.NewServeMux()
 	server.HandleFunc("/gpt", gptComplete)
-	err = http.ListenAndServe(":8080", server)
+	err = http.ListenAndServe(":80", server)
 	if err != nil {
 		log.Fatalf("Some error occured. Err: %s", err)
 	}
